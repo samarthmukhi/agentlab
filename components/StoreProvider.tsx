@@ -9,7 +9,18 @@ import {
   useRef,
   useState,
 } from "react";
-import { createInitialState, loadState, saveState } from "@/lib/state";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  createInitialState,
+  hasProgress,
+  loadState,
+  loadStateOrInitial,
+  saveState,
+  storageKeyFor,
+  STORAGE_KEY,
+} from "@/lib/state";
+import { getBrowserSupabase } from "@/lib/supabase/client";
+import { loadCloudState, saveCloudState } from "@/lib/cloud";
 import type {
   AppState,
   AssessmentResult,
@@ -21,9 +32,21 @@ import type {
   ResearchEntry,
 } from "@/lib/types";
 
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
 interface StoreContextValue {
   state: AppState;
   hydrated: boolean;
+  // Auth
+  authConfigured: boolean;
+  authLoading: boolean;
+  user: AuthUser | null;
+  syncing: boolean;
+  signOut: () => Promise<void>;
+  // Mutations
   setCurrentDay: (day: number) => void;
   markLearningComplete: (dayId: string, value: boolean) => void;
   markBuildComplete: (dayId: string, value: boolean) => void;
@@ -51,25 +74,115 @@ interface StoreContextValue {
 
 const StoreContext = createContext<StoreContextValue | null>(null);
 
+async function loadForUser(
+  supa: SupabaseClient,
+  userId: string,
+): Promise<AppState> {
+  const userKey = storageKeyFor(userId);
+  // Cloud is the source of truth once a row exists.
+  let cloud: AppState | null = null;
+  try {
+    cloud = await loadCloudState(supa, userId);
+  } catch {
+    cloud = null;
+  }
+  if (cloud) {
+    saveState(cloud, userKey);
+    return cloud;
+  }
+  // No cloud row yet: migrate guest progress up, else use any user cache/fresh.
+  const guest = loadState(STORAGE_KEY);
+  const seed =
+    guest && hasProgress(guest)
+      ? guest
+      : loadState(userKey) ?? createInitialState();
+  try {
+    await saveCloudState(supa, userId, seed);
+  } catch {
+    /* offline — will retry on next change */
+  }
+  saveState(seed, userKey);
+  return seed;
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(() => createInitialState());
   const [hydrated, setHydrated] = useState(false);
-  const persistRef = useRef(false);
+  const [authConfigured, setAuthConfigured] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
-  // Hydrate from localStorage on mount (client only).
+  const userIdRef = useRef<string | null | undefined>(undefined);
+  const hydratedRef = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ---- Bootstrap: local-only when not configured, else follow auth state ----
   useEffect(() => {
-    setState(loadState());
-    setHydrated(true);
-    persistRef.current = true;
+    const supa = getBrowserSupabase();
+    if (!supa) {
+      setAuthConfigured(false);
+      setAuthLoading(false);
+      setState(loadStateOrInitial(STORAGE_KEY));
+      userIdRef.current = null;
+      hydratedRef.current = true;
+      setHydrated(true);
+      return;
+    }
+
+    setAuthConfigured(true);
+    let active = true;
+
+    const { data: sub } = supa.auth.onAuthStateChange(async (_event, session) => {
+      const u: AuthUser | null = session?.user
+        ? { id: session.user.id, email: session.user.email ?? "" }
+        : null;
+      setUser(u);
+      setAuthLoading(false);
+
+      const newId = u?.id ?? null;
+      if (newId === userIdRef.current && hydratedRef.current) return; // unchanged
+
+      setSyncing(true);
+      setHydrated(false);
+      const next = u ? await loadForUser(supa, u.id) : loadStateOrInitial(STORAGE_KEY);
+      if (!active) return;
+      userIdRef.current = newId;
+      setState(next);
+      hydratedRef.current = true;
+      setHydrated(true);
+      setSyncing(false);
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
-  // Persist on every change once hydrated.
+  // ---- Persist on change (guest → localStorage; signed-in → cache + cloud) ----
   useEffect(() => {
-    if (persistRef.current && hydrated) saveState(state);
+    if (!hydrated) return;
+    const uid = userIdRef.current;
+    if (uid) {
+      saveState(state, storageKeyFor(uid));
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => {
+        const supa = getBrowserSupabase();
+        if (supa) void saveCloudState(supa, uid, state);
+      }, 800);
+    } else {
+      saveState(state, STORAGE_KEY);
+    }
   }, [state, hydrated]);
 
   const mutate = useCallback((fn: (prev: AppState) => AppState) => {
     setState((prev) => fn(prev));
+  }, []);
+
+  const signOut = useCallback(async () => {
+    const supa = getBrowserSupabase();
+    if (supa) await supa.auth.signOut(); // triggers onAuthStateChange → guest
   }, []);
 
   const value = useMemo<StoreContextValue>(() => {
@@ -77,6 +190,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return {
       state,
       hydrated,
+      authConfigured,
+      authLoading,
+      user,
+      syncing,
+      signOut,
       setCurrentDay: (day) => mutate((p) => ({ ...p, currentDay: day })),
       markLearningComplete: (dayId, v) =>
         mutate((p) => ({
@@ -161,7 +279,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       resetAll: () => mutate(() => createInitialState()),
       exportState: () => JSON.stringify(state, null, 2),
     };
-  }, [state, hydrated, mutate]);
+  }, [state, hydrated, authConfigured, authLoading, user, syncing, signOut, mutate]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

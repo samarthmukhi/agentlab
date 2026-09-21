@@ -103,10 +103,13 @@ findings and update your own beliefs.
 
 - **Next.js 15** (App Router) + **React 19** + **TypeScript**
 - **Tailwind CSS v3** — minimal black/white/grayscale design system, light + dark
-- **localStorage** persistence via a typed domain store (no backend, no account)
+- **localStorage** persistence via a typed domain store (works with no backend)
+- **Optional accounts + cloud sync** via **Supabase** (email/password), enabled
+  only when env vars are present — otherwise the app runs fully local
 - **Vitest** for the domain-logic test suite
-- **No API key required.** The base product uses seeded content; an optional
-  LLM layer can be added later behind clean interfaces (see roadmap).
+- **No API key required to run.** The base product uses seeded content; the
+  Supabase layer is optional and an LLM layer can be added later behind clean
+  interfaces (see roadmap).
 
 ---
 
@@ -119,6 +122,19 @@ npm run dev
 
 Open http://localhost:3000. Progress is saved in your browser and survives
 refreshes; export/import a JSON backup from **Settings**.
+
+### Accounts & cloud sync (optional)
+
+By default AgentLab needs no account — progress lives in your browser. To add
+**email/password accounts with cross-device sync**, set two Supabase env vars and
+run one SQL script. When configured, a `/login` page appears, signing in migrates
+your existing local progress to your account, and everything syncs to the cloud.
+When not configured, the app stays fully local. Full walkthrough (Supabase setup
++ Vercel deploy) in [`docs/deployment.md`](docs/deployment.md).
+
+```bash
+cp .env.example .env.local   # fill in NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY
+```
 
 Other scripts:
 

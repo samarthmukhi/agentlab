@@ -54,6 +54,55 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+function AccountBox({ onNavigate }: { onNavigate?: () => void }) {
+  const { authConfigured, authLoading, user, signOut, syncing } = useStore();
+
+  if (!authConfigured) {
+    return (
+      <div className="rounded-md px-3 py-2 text-[11px]" style={{ color: "var(--muted)" }}>
+        <span aria-hidden>◍</span> Local mode · saved in this browser
+      </div>
+    );
+  }
+  if (authLoading) {
+    return (
+      <div className="px-3 py-2 text-[11px]" style={{ color: "var(--muted)" }}>
+        Checking session…
+      </div>
+    );
+  }
+  if (!user) {
+    return (
+      <Link
+        href="/login"
+        onClick={onNavigate}
+        className="btn w-full justify-center"
+      >
+        Sign in to sync
+      </Link>
+    );
+  }
+  return (
+    <div className="rounded-md border p-2.5">
+      <div className="truncate text-xs font-medium" title={user.email}>
+        {user.email || "Signed in"}
+      </div>
+      <div className="mt-0.5 text-[10px]" style={{ color: "var(--muted)" }}>
+        {syncing ? "Syncing…" : "Synced to cloud"}
+      </div>
+      <button
+        className="btn mt-2 w-full justify-center"
+        onClick={async () => {
+          await signOut();
+          onNavigate?.();
+        }}
+      >
+        Sign out
+      </button>
+    </div>
+  );
+}
+
 function Wordmark() {
   return (
     <Link href="/" className="flex items-center gap-2">
@@ -84,8 +133,11 @@ export function Sidebar() {
         <Wordmark />
       </div>
       <NavLinks />
-      <div className="mt-auto px-2 pt-4 text-[10px]" style={{ color: "var(--muted)" }}>
-        9-day agentic-AI sprint
+      <div className="mt-auto space-y-2 pt-4">
+        <AccountBox />
+        <div className="px-2 text-[10px]" style={{ color: "var(--muted)" }}>
+          9-day agentic-AI sprint
+        </div>
       </div>
     </aside>
   );
@@ -110,8 +162,9 @@ export function MobileBar() {
         </button>
       </div>
       {open && (
-        <div className="border-b p-4" style={{ background: "var(--surface)" }}>
+        <div className="space-y-3 border-b p-4" style={{ background: "var(--surface)" }}>
           <NavLinks onNavigate={() => setOpen(false)} />
+          <AccountBox onNavigate={() => setOpen(false)} />
         </div>
       )}
     </div>

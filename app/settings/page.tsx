@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/components/StoreProvider";
 import { SectionHeading } from "@/components/ui";
@@ -8,7 +9,8 @@ import { migrateState, saveState } from "@/lib/state";
 type Theme = "system" | "light" | "dark";
 
 export default function SettingsPage() {
-  const { state, updateSettings, resetAll, exportState } = useStore();
+  const { state, updateSettings, resetAll, exportState, authConfigured, user, signOut } =
+    useStore();
   const [confirmReset, setConfirmReset] = useState(false);
   const [importMsg, setImportMsg] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -63,6 +65,37 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <SectionHeading eyebrow="Configuration" title="Settings" />
+
+      <div className="card p-5">
+        <div className="label mb-2">Account</div>
+        {!authConfigured ? (
+          <p className="text-sm" style={{ color: "var(--fg-soft)" }}>
+            Running in <b>local mode</b> — progress is saved in this browser only. Cloud
+            accounts aren&apos;t configured for this deployment (see{" "}
+            <code>docs/deployment.md</code>).
+          </p>
+        ) : user ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm">
+              Signed in as <b>{user.email || "your account"}</b> · progress synced to the
+              cloud.
+            </div>
+            <button className="btn" onClick={() => signOut()}>
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm" style={{ color: "var(--fg-soft)" }}>
+              You&apos;re not signed in. Progress is local to this browser until you sign
+              in.
+            </div>
+            <Link href="/login" className="btn btn-primary">
+              Sign in to sync
+            </Link>
+          </div>
+        )}
+      </div>
 
       <div className="card p-5">
         <label className="block max-w-sm">

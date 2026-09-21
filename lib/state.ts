@@ -68,23 +68,50 @@ export function migrateState(raw: unknown): AppState {
   return merged;
 }
 
-export function loadState(): AppState {
-  if (typeof window === "undefined") return createInitialState();
+/** Per-user cache key so a signed-in user's cached state never leaks to a guest
+ * or another account on a shared browser. */
+export function storageKeyFor(userId?: string | null): string {
+  return userId ? `${STORAGE_KEY}::${userId}` : STORAGE_KEY;
+}
+
+export function loadState(key: string = STORAGE_KEY): AppState | null {
+  if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return createInitialState();
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
     return migrateState(JSON.parse(raw));
   } catch {
-    return createInitialState();
+    return null;
   }
 }
 
-export function saveState(state: AppState): void {
+export function loadStateOrInitial(key: string = STORAGE_KEY): AppState {
+  return loadState(key) ?? createInitialState();
+}
+
+export function saveState(state: AppState, key: string = STORAGE_KEY): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.localStorage.setItem(key, JSON.stringify(state));
   } catch {
     // Storage may be unavailable (private mode / quota). Fail silently;
     // the app must still work in-memory for the session.
   }
+}
+
+/** True when the state carries real user activity worth migrating to the cloud. */
+export function hasProgress(state: AppState): boolean {
+  if (state.results.length > 0) return true;
+  if (state.evidence.length > 0) return true;
+  if (state.interviews.length > 0) return true;
+  if (state.competitors.length > 0) return true;
+  if (Object.keys(state.reflections).length > 0) return true;
+  if (state.finalChallenge.notes.trim().length > 0) return true;
+  if (Object.values(state.dayProgress).some((d) => d.learningComplete || d.buildComplete))
+    return true;
+  if (Object.values(state.research).some((r) => r.findings.trim() || r.interpretation.trim()))
+    return true;
+  if (state.hypotheses.some((h) => h.initialBelief.trim() || h.evidence.trim()))
+    return true;
+  return false;
 }
