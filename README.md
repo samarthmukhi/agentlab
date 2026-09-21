@@ -49,11 +49,16 @@ Each of the 9 days runs the same pipeline:
 | --- | --- |
 | **Learn** | Objectives, concepts (with common misconceptions), failure modes, 2–3 core resources. |
 | **Build** | A small, concrete, testable implementation you write yourself (~20–30 min). |
-| **Assess** | 10–15 MCQs (Day 9: 35), sampled from a bank. **Locked** until Learn + Build are complete. Answers hidden until you submit. |
+| **Assess** | ~8 MCQs (Day 9 capstone: 20), sampled from a bank. **Locked** until Learn + Build are complete. Answers hidden until you submit. |
 | **Diagnose** | Score, category breakdown, and the specific concepts you missed. |
 | **Review** | An auto-derived, prioritized review queue built purely from real mistakes. |
 | **Retest** | Different questions targeting your missed concepts; first attempt preserved. |
 | **Document** | A daily reflection + evidence (commits, screenshots, demos). |
+
+**Time budget:** each day's agents track is scoped to **~20–25 minutes total**
+(learn + build + assess combined): one skim resource plus the in-app concept
+cards, a ~10-minute micro-build, and a short ~8-question quiz. The SwarmFolio
+research track is separate.
 
 ---
 

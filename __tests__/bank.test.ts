@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BANK_COUNTS, QUESTION_BANK, questionsForDay } from "@/lib/questions";
-import { DAYS } from "@/lib/curriculum";
+import { BUILDS, DAYS } from "@/lib/curriculum";
 import { conceptByName } from "@/lib/curriculum";
 
 const MIN_PER_DAY: Record<string, number> = {
@@ -53,15 +53,27 @@ describe("question bank integrity", () => {
     }
   });
 
-  it("each daily assessment size fits the daily-assessment spec (10-15, day9 30-40)", () => {
+  it("each daily assessment fits the ~20-25 min/day budget (short daily quiz, longer day-9 capstone)", () => {
     for (const d of DAYS) {
       if (d.dayNumber === 9) {
-        expect(d.assessmentSize).toBeGreaterThanOrEqual(30);
-        expect(d.assessmentSize).toBeLessThanOrEqual(40);
+        expect(d.assessmentSize).toBeGreaterThanOrEqual(15);
+        expect(d.assessmentSize).toBeLessThanOrEqual(25);
       } else {
-        expect(d.assessmentSize).toBeGreaterThanOrEqual(10);
-        expect(d.assessmentSize).toBeLessThanOrEqual(15);
+        expect(d.assessmentSize).toBeGreaterThanOrEqual(6);
+        expect(d.assessmentSize).toBeLessThanOrEqual(12);
       }
+    }
+  });
+
+  it("each day is scoped to a tight daily budget (<= 25 estimated minutes)", () => {
+    for (const d of DAYS) {
+      expect(d.estimatedMinutes, `${d.id} estimate`).toBeLessThanOrEqual(25);
+    }
+  });
+
+  it("each micro-build is <= 12 suggested minutes", () => {
+    for (const b of BUILDS) {
+      expect(b.suggestedMinutes, `${b.id} build minutes`).toBeLessThanOrEqual(12);
     }
   });
 

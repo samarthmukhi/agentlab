@@ -1,25 +1,30 @@
 # Curriculum
 
-The 9-day path is authoritative and fixed in order. Each day is ~60 minutes
-(Day 9 ~75). Source of truth: [`lib/curriculum.ts`](../lib/curriculum.ts).
+The 9-day path is authoritative and fixed in order. Each day's agents track is
+scoped to **~20–25 minutes total** (learn + build + assess combined; Day 9 ~25).
+The SwarmFolio research track is separate. Source of truth:
+[`lib/curriculum.ts`](../lib/curriculum.ts).
 
 Each day defines: learning objectives, concepts (with a "common misconception"),
 failure modes, 2–3 core resources (+ optional deep dives), a build, and an
 assessment sampled from that day's question bank.
 
-| Day | Topic | Build | Daily assessment | Bank size |
-| --- | --- | --- | --- | --- |
-| 1 | Agent Fundamentals | Tiny tool-using calculator agent | 12 | 25 |
-| 2 | Tools & Function Calling | Calculator + mock stock + constraint checker | 12 | 25 |
-| 3 | RAG | Minimal doc→chunks→embeddings→retrieval→answer pipeline | 12 | 25 |
-| 4 | Structured Outputs | Thesis → JSON constraints + two-layer validation | 12 | 25 |
-| 5 | State, Memory & Orchestration | Research → Risk → Summary sequential workflow | 12 | 25 |
-| 6 | Multi-Agent Systems | Research + Risk → Committee with deliberate disagreement | 14 | 30 |
-| 7 | Frameworks & uAgents | Two uAgents exchanging a message | 12 | 25 |
-| 8 | Agents × SwarmFolio | Agent → constraints → feasibility → conflict → revision loop | 12 | 25 |
-| 9 | Mastery & System Design | Architecture artifact: the AI Investment Committee | 35 | 40 |
+Builds are ~10-minute micro-exercises; the daily quiz is short (~8 questions)
+and samples from a much larger bank so retests draw different questions.
 
-**Total question bank: 245+.**
+| Day | Topic | Micro-build (~10 min) | Daily quiz | Bank size |
+| --- | --- | --- | --- | --- |
+| 1 | Agent Fundamentals | One-turn tool decision | 8 | 25 |
+| 2 | Tools & Function Calling | Validate a tool argument | 8 | 25 |
+| 3 | RAG | Tiny retrieval by similarity | 8 | 25 |
+| 4 | Structured Outputs | Two-layer validation | 8 | 25 |
+| 5 | State, Memory & Orchestration | State through three steps | 8 | 25 |
+| 6 | Multi-Agent Systems | Surface a disagreement | 8 | 30 |
+| 7 | Frameworks & uAgents | Two uAgents, one message | 8 | 25 |
+| 8 | Agents × SwarmFolio | Infeasible → revise → feasible | 8 | 25 |
+| 9 | Mastery & System Design | Architecture artifact (evidence only) | 20 | 40 |
+
+**Total question bank: 245.**
 
 ## Educational quality bar
 

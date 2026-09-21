@@ -15,6 +15,16 @@ export default function LearnIndex() {
         Each day runs the same loop: <b>Learn → Build → Assess → Review → Document</b>.
         Assessment unlocks only after you complete both learning and the build.
       </p>
+      <p
+        className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs"
+        style={{ background: "var(--surface-2)", color: "var(--fg-soft)" }}
+      >
+        <span aria-hidden>⏱</span>
+        <span>
+          Designed for <b>~20–25 minutes/day</b> total: one skim resource + concept
+          cards, a ~10-min micro-build, and a short ~8-question quiz.
+        </span>
+      </p>
       <div className="space-y-3">
         {DAYS.map((d) => {
           const s = dayStatus(state, d.id);
