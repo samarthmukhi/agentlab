@@ -14,6 +14,16 @@ export default function BuildsPage() {
         Small, concrete, testable builds — you write the code. Each maps to the day&apos;s
         concepts and to a piece of the future AI Investment Committee.
       </p>
+      <p
+        className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs"
+        style={{ background: "var(--surface-2)", color: "var(--fg-soft)" }}
+      >
+        <span aria-hidden>🐍</span>
+        <span>
+          All builds are in <b>Python (3.10+)</b>. Day 7 uses Fetch&apos;s uAgents
+          (a Python library). No other language needed.
+        </span>
+      </p>
       <div className="space-y-5">
         {BUILDS.map((b) => {
           const day = dayById(b.dayId);

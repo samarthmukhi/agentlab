@@ -9,8 +9,9 @@ Each day defines: learning objectives, concepts (with a "common misconception"),
 failure modes, 2–3 core resources (+ optional deep dives), a build, and an
 assessment sampled from that day's question bank.
 
-Builds are ~10-minute micro-exercises; the daily quiz is short (~8 questions)
-and samples from a much larger bank so retests draw different questions.
+Builds are ~10-minute micro-exercises written in **Python (3.10+)**; the daily
+quiz is short (~8 questions) and samples from a much larger bank so retests draw
+different questions. (Day 7 uses Fetch's uAgents, a Python library.)
 
 | Day | Topic | Micro-build (~10 min) | Daily quiz | Bank size |
 | --- | --- | --- | --- | --- |
